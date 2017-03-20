@@ -63,11 +63,9 @@ tensorflow::Status BufferLiveness::Analyze() {
     }
 
     if (computation.get() == module_->entry_computation()) {
-      for (const LogicalBuffer* live_out_buffer :
-           points_to_analysis_->GetPointsToSet(computation->root_instruction())
-               .CreateFlattenedSet()) {
-        maybe_live_out_buffers_.insert(live_out_buffer);
-      }
+      const HloInstruction* root = computation->root_instruction();
+      maybe_live_out_buffers_ =
+          points_to_analysis_->GetPointsToSet(root).CreateFlattenedSet();
     }
   }
 
@@ -246,7 +244,7 @@ bool BufferLiveness::live_range_strictly_before(const LogicalBuffer& a,
   // *) Is a loop fusion instruction (with DynamicUpdateSlice fused root) where
   //    the singleton use of 'a' at 'a.index' is the fused root at operand 0.
   for (const BufferAlias& alias : points_to_analysis_->GetBufferAliases(a)) {
-    if (alias.instruction()->users().count(b.instruction()) > 0 &&
+    if (b.instruction()->IsUserOf(alias.instruction()) &&
         !CanShareOperandBufferWithUser(alias.instruction(), alias.index(),
                                        b.instruction(), b.index(),
                                        points_to_analysis())) {

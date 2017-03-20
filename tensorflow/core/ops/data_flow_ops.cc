@@ -1091,6 +1091,7 @@ REGISTER_OP("TensorArrayV3")
       ShapeHandle unused;
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 0, &unused));
       c->set_output(0, c->Vector(2));
+      c->set_output(1, c->Scalar());
       return Status::OK();
     })
     .Doc(R"doc(
@@ -1127,6 +1128,7 @@ REGISTER_OP("TensorArrayGradV3")
       TF_RETURN_IF_ERROR(c->WithRank(c->input(0), 1, &handle));
       TF_RETURN_IF_ERROR(c->WithValue(c->Dim(handle, 0), 2, &unused_dim));
       c->set_output(0, c->Vector(2));
+      c->set_output(1, c->Scalar());
       return Status::OK();
     })
     .Doc(R"doc(
@@ -2152,11 +2154,19 @@ REGISTER_OP("GetSessionHandle")
     .Output("handle: string")
     .Attr("T: type")
     .SetShapeFn(shape_inference::ScalarShape)
+    .Deprecated(23, "Use GetSessionHandleV2");
+
+REGISTER_OP("GetSessionHandleV2")
+    .Input("value: T")
+    .Output("handle: resource")
+    .Attr("T: type")
+    .SetShapeFn(shape_inference::ScalarShape)
     .Doc(R"doc(
 Store the input tensor in the state of the current session.
 
 value: The tensor to be stored.
-handle: The handle for the tensor stored in the session state.
+handle: The handle for the tensor stored in the session state, represented
+  as a ResourceHandle object.
 )doc");
 
 REGISTER_OP("GetSessionTensor")

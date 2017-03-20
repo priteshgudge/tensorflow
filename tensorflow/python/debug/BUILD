@@ -29,6 +29,15 @@ py_library(
     ],
 )
 
+# Transitive dependencies of this target will be included in the pip package.
+py_library(
+    name = "debug_pip",
+    deps = [
+        ":debug_py",
+        ":session_debug_testlib",
+    ],
+)
+
 py_library(
     name = "debug_data",
     srcs = ["lib/debug_data.py"],
@@ -43,6 +52,12 @@ py_library(
 py_library(
     name = "debug_utils",
     srcs = ["lib/debug_utils.py"],
+    srcs_version = "PY2AND3",
+)
+
+py_library(
+    name = "source_utils",
+    srcs = ["lib/source_utils.py"],
     srcs_version = "PY2AND3",
 )
 
@@ -121,7 +136,9 @@ py_library(
         ":command_parser",
         ":debug_data",
         ":debugger_cli_common",
+        ":source_utils",
         ":ui_factory",
+        "//third_party/py/numpy",
         "@six_archive//:six",
     ],
 )
@@ -152,12 +169,20 @@ py_library(
 )
 
 py_library(
+    name = "curses_widgets",
+    srcs = ["cli/curses_widgets.py"],
+    srcs_version = "PY2AND3",
+    deps = [":debugger_cli_common"],
+)
+
+py_library(
     name = "curses_ui",
     srcs = ["cli/curses_ui.py"],
     srcs_version = "PY2AND3",
     deps = [
         ":base_ui",
         ":command_parser",
+        ":curses_widgets",
         ":debugger_cli_common",
         ":tensor_format",
         "@six_archive//:six",
@@ -323,6 +348,25 @@ py_test(
     ],
 )
 
+py_test(
+    name = "source_utils_test",
+    size = "small",
+    srcs = [
+        "lib/source_utils_test.py",
+    ],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":debug_data",
+        ":debug_utils",
+        ":source_utils",
+        "//tensorflow/python:client",
+        "//tensorflow/python:framework_test_lib",
+        "//tensorflow/python:math_ops",
+        "//tensorflow/python:platform_test",
+        "//tensorflow/python:variables",
+    ],
+)
+
 cuda_py_test(
     name = "stepper_test",
     size = "small",
@@ -359,6 +403,17 @@ py_test(
         "//tensorflow/python:platform_test",
         "//tensorflow/python:variables",
         "//third_party/py/numpy",
+    ],
+)
+
+py_test(
+    name = "curses_widgets_test",
+    size = "small",
+    srcs = ["cli/curses_widgets_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":curses_widgets",
+        "//tensorflow/python:framework_test_lib",
     ],
 )
 
@@ -413,6 +468,7 @@ py_library(
         "//tensorflow/python:framework_for_generated_wrappers",
         "//tensorflow/python:framework_test_lib",
         "//tensorflow/python:math_ops",
+        "//tensorflow/python:parsing_ops",
         "//tensorflow/python:platform_test",
         "//tensorflow/python:state_ops",
         "//tensorflow/python:training",

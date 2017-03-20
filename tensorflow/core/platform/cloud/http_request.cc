@@ -19,7 +19,6 @@ limitations under the License.
 #include "tensorflow/core/lib/gtl/map_util.h"
 #include "tensorflow/core/lib/strings/scanner.h"
 #include "tensorflow/core/lib/strings/str_util.h"
-#include "tensorflow/core/platform/protobuf.h"
 #include "tensorflow/core/platform/types.h"
 #include "tensorflow/core/public/version.h"
 
@@ -383,8 +382,10 @@ Status HttpRequest::Send() {
       return Status::OK();
     case 401:
     case 403:
+      response_buffer_->clear();
       return errors::PermissionDenied(error_message);
     case 404:
+      response_buffer_->clear();
       return errors::NotFound(error_message);
     case 416:  // Requested Range Not Satisfiable
       response_buffer_->clear();
@@ -392,6 +393,7 @@ Status HttpRequest::Send() {
     default:
       // UNAVAILABLE can be retried by the caller, e.g by
       // RetryingFileSystem.
+      response_buffer_->clear();
       return errors::Unavailable(error_message);
   }
 }
